@@ -1,1 +1,18 @@
-module.exports=function(req,res){res.statusCode=503;res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','no-store');res.end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Apex Skills Institute</title><style>body{font-family:Arial,sans-serif;margin:0;background:#f7f8fa;color:#172033;display:grid;min-height:100vh;place-items:center}.c{max-width:680px;padding:40px;text-align:center}h1{font-size:32px;margin-bottom:12px}p{font-size:17px;line-height:1.6}</style></head><body><main class="c"><h1>Apex Skills Institute</h1><p>Our website is temporarily unavailable while we complete a deployment update. Please check again shortly.</p></main></body></html>')};
+const ORIGIN='https://apex-skills-institute-rmlx0fgdj-ludidil-5352s-projects.vercel.app';
+module.exports=async function(req,res){
+  try{
+    const u=new URL(req.url||'/',ORIGIN);
+    const r=await fetch(u,{method:req.method||'GET',headers:{'user-agent':req.headers['user-agent']||'Apex-restore-proxy','accept':req.headers.accept||'*/*'}});
+    res.statusCode=r.status;
+    for(const [k,v] of r.headers){if(!['content-encoding','content-length','transfer-encoding','connection'].includes(k.toLowerCase()))res.setHeader(k,v)}
+    res.setHeader('X-Apex-Restore-Proxy','v2.13-known-good');
+    const b=Buffer.from(await r.arrayBuffer());
+    res.setHeader('Content-Length',String(b.length));
+    res.end(b);
+  }catch(e){
+    console.error('Apex restore proxy failed',e);
+    res.statusCode=503;
+    res.setHeader('Content-Type','text/plain; charset=utf-8');
+    res.end('Apex Skills Institute is temporarily unavailable. Please try again shortly.');
+  }
+};
