@@ -3,14 +3,40 @@ const SITE='https://apexskillsinstitute.co.za';
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cleanPath=p=>{
-  if(p==='/index.html') return '/';
+  if(p==='/index'||p==='/index.html') return '/';
   if(p.endsWith('.html')) return p.slice(0,-5)||'/';
   return p;
 };
-const cleanHtml=html=>html
-  .replace(/(href|action)=(['"])([^'"#?]+)\.html([?#][^'"]*)?\2/gi,(m,a,q,u,s='')=>`${a}=${q}${u}${s}${q}`)
-  .replace(/(href|action)=(['"])index\.html([?#][^'"]*)?\2/gi,(m,a,q,s='')=>`${a}=${q}/${s}${q}`)
-  .replace(/https:\/\/apexskillsinstitute\.co\.za\/([a-z0-9\/-]+)\.html/gi,`${SITE}/$1`);
+const canonicalRoute=p=>{
+  p=cleanPath(p);
+  if(p==='/terms') return '/terms-and-conditions';
+  if(p==='/privacy') return '/privacy-policy';
+  return p;
+};
+const cleanInternalUrl=(raw,pagePath)=>{
+  if(!raw||raw.startsWith('#')||/^(mailto:|tel:|sms:|javascript:|data:)/i.test(raw)) return raw;
+  try{
+    const u=new URL(raw,new URL(pagePath,SITE));
+    if(u.origin!==SITE) return raw;
+    u.pathname=canonicalRoute(u.pathname);
+    return `${u.pathname}${u.search}${u.hash}`;
+  }catch{return raw}
+};
+const markCurrentNavigation=(html,pagePath)=>{
+  const section=pagePath.startsWith('/schools/')?'/schools':pagePath.startsWith('/programmes/')?'/programmes':canonicalRoute(pagePath);
+  return html.replace(/(<header\b[\s\S]*?<nav\b[\s\S]*?<\/nav>)/i,nav=>nav.replace(/<a\b([^>]*?)href=(['"])(.*?)\2([^>]*)>/gi,(m,before,q,href,after)=>{
+    const target=cleanInternalUrl(href,pagePath).split(/[?#]/)[0];
+    const attrs=`${before}href=${q}${href}${q}${after}`.replace(/\saria-current=(['"])page\1/gi,'');
+    const isCta=/\bnav-cta\b/i.test(`${before} ${after}`);
+    return target===section&&!isCta?`<a${attrs} aria-current="page">`:`<a${attrs}>`;
+  }));
+};
+const cleanHtml=(html,pagePath)=>{
+  let out=html.replace(/\b(href|src|action)=(['"])(.*?)\2/gi,(m,a,q,u)=>`${a}=${q}${cleanInternalUrl(u,pagePath)}${q}`);
+  out=out.replace(/<a\b([^>]*?)href="\/privacy-policy"([^>]*)>Privacy<\/a>\s*·\s*<a\b([^>]*?)href="\/terms-and-conditions"([^>]*)>Terms<\/a>/i,'<a$1href="/privacy-policy"$2>Privacy Policy</a> · <a$3href="/terms-and-conditions"$4>Terms &amp; Conditions</a> · <a href="/disclaimer" style="display:inline;margin:0">Disclaimer</a>');
+  out=out.replace(/(<h3 class="footer-heading">Institution<\/h3>[\s\S]*?<a href="\/about">About Apex<\/a>)/i,'$1<a href="/faculty-network">Faculty Network</a>');
+  return markCurrentNavigation(out,pagePath);
+};
 
 function shell({title,description,label,heading,body}){
 return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0A1B4A"><title>${esc(title)} | Apex Skills Institute</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${SITE}${locationFor(title)}"><link rel="icon" href="/assets/favicon.png"><link rel="stylesheet" href="/assets/styles.css?v=2.13.0"><meta property="og:site_name" content="Apex Skills Institute"><meta property="og:type" content="website"><meta property="og:title" content="${esc(title)} | Apex Skills Institute"><meta property="og:description" content="${esc(description)}"><meta property="og:url" content="${SITE}${locationFor(title)}"><meta property="og:image" content="${SITE}/assets/apex-social-card-v2.jpg"><meta name="twitter:card" content="summary_large_image"></head><body><a class="skip" href="#main">Skip to content</a><header><div class="wrap head"><a class="brand" href="/" aria-label="Apex Skills Institute home"><img src="/assets/apex-logo-light.webp" alt="Apex Skills Institute"></a><nav aria-label="Primary navigation"><a href="/schools">Schools</a><a href="/programmes">Programmes</a><a href="/for-organisations">For Organisations</a><a href="/about">About</a><a href="/contact">Contact</a><a class="nav-cta" href="/contact">Enquire</a></nav><button class="menu" aria-expanded="false" aria-label="Open menu"><span></span><span></span><span></span></button></div></header><main id="main"><section class="page-hero"><div class="wrap"><div class="eyebrow">${esc(label)}</div><h1>${esc(heading)}</h1><p class="lead">Effective 21 August 2026 · Version 1.0</p><div class="status-note"><strong>Draft — Legal Review.</strong> This page is published for institutional transparency and remains subject to review by an appropriate South African legal or privacy professional.</div></div></section><section class="section"><div class="wrap" style="max-width:900px"><div class="legal-copy">${body}</div></div></section></main>${footer()}<script src="/assets/site.js?v=2.13.0"></script></body></html>`}
@@ -90,7 +116,7 @@ module.exports=async function(req,res){
     const p=incoming.pathname;
     if(p==='/terms'||p==='/terms.html'){res.statusCode=308;res.setHeader('Location','/terms-and-conditions');return res.end()}
     if(p==='/privacy'||p==='/privacy.html'){res.statusCode=308;res.setHeader('Location','/privacy-policy');return res.end()}
-    if(p==='/index.html'||p.endsWith('.html')){res.statusCode=308;res.setHeader('Location',cleanPath(p)+(incoming.search||''));return res.end()}
+    if(p==='/index'||p==='/index.html'||p.endsWith('.html')){res.statusCode=308;res.setHeader('Location',canonicalRoute(p)+(incoming.search||''));return res.end()}
     if(LEGAL[p]){const b=Buffer.from(LEGAL[p]);res.statusCode=200;res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','public, max-age=0, must-revalidate');res.setHeader('Content-Length',String(b.length));return res.end(b)}
     let originPath=p;
     if(!/\.[a-z0-9]{2,8}$/i.test(p) && p!=='/') originPath=p+'.html';
@@ -102,7 +128,7 @@ module.exports=async function(req,res){
     if(r.status>=300&&r.status<400&&r.headers.get('location')){const l=r.headers.get('location');res.setHeader('Location',l.replace(/\.html(?=$|[?#])/i,''))}
     res.setHeader('X-Apex-Release-Layer','v2.15-phase1');
     let b=Buffer.from(await r.arrayBuffer());
-    if(type.includes('text/html')) b=Buffer.from(cleanHtml(b.toString('utf8')),'utf8');
+    if(type.includes('text/html')) b=Buffer.from(cleanHtml(b.toString('utf8'),p),'utf8');
     res.setHeader('Content-Length',String(b.length));
     res.end(b);
   }catch(e){console.error('Apex release proxy failed',e);res.statusCode=503;res.setHeader('Content-Type','text/plain; charset=utf-8');res.end('Apex Skills Institute is temporarily unavailable. Please try again shortly.')}
