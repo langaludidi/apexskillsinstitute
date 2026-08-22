@@ -49,6 +49,8 @@
 .v215-small{font-size:.9rem;color:#64748b}
 .v215-btn{display:inline-block;padding:12px 18px;border-radius:9px;text-decoration:none;font-weight:800;background:var(--apex-gold);color:#07183d}
 .v215-btn.secondary{background:#fff;color:var(--apex-navy);border:1px solid #dce3ee}
+.v215-hero p:last-child{display:flex;align-items:stretch;gap:12px;margin-top:28px}
+.v215-hero p:last-child .v215-btn{display:flex;align-items:center;justify-content:center;text-align:center;min-height:52px}
 .faculty-form-actions [hidden],.faculty-form-message[hidden],.faculty-confirmation[hidden],#faculty-form[hidden]{display:none!important}
 .faculty-form-actions button:disabled{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none}
 @media(max-width:800px){.v215-grid,.v215-process,.v215-footer-grid,.form-grid,.check-grid,.radio-row{grid-template-columns:1fr}
@@ -60,4 +62,6 @@
 .faculty-form-actions button:only-child{grid-column:1/-1}
 .v215-hero h1{font-size:clamp(2.5rem,12vw,3.75rem);line-height:1.02}
 .v215-hero p{font-size:1.05rem;line-height:1.62}
+.v215-hero p:last-child{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.v215-hero p:last-child .v215-btn{width:100%;min-width:0;min-height:64px;padding:10px 12px;font-size:.9rem;line-height:1.25}
 }
