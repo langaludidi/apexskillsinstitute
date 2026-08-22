@@ -1,5 +1,7 @@
 const ORIGIN='https://apex-skills-institute-rmlx0fgdj-ludidil-5352s-projects.vercel.app';
 const SITE='https://apexskillsinstitute.co.za';
+const SUPABASE_URL='https://vmgmjvakronmkncipzhh.supabase.co';
+const SUPABASE_KEY='sb_publishable_KSA8xpm5fMS7IsckTTQEjQ_nCgAh5UB';
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cleanPath=p=>{
@@ -32,6 +34,7 @@ const markCurrentNavigation=(html,pagePath)=>{
   }));
 };
 const MEDIA='/assets/media/';
+const formCss=`<style id="apex-form-feedback">.form-feedback{margin-top:14px;padding:12px 14px;border-radius:8px;background:#eef3fb;color:#07183d}.form-feedback:empty{display:none}.form-feedback.success{background:#e8f6ed;color:#155b31}.form-feedback.error{background:#fff0ed;color:#8c241b}button:disabled{cursor:wait;opacity:.7}</style>`;
 const imageForRoute=pagePath=>{
   const p=canonicalRoute(pagePath);
   if(p==='/') return ['apex_02_team_collaboration.webp','Apex learners collaborating around a laptop'];
@@ -71,7 +74,7 @@ const imageForRoute=pagePath=>{
 const mediaCss=`<style id="apex-media-quality">header nav a[aria-current="page"]{color:#07183d;box-shadow:inset 0 -3px #d85700}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #e56a14!important;outline-offset:3px}.brand img,.footer-logo{height:auto;image-rendering:auto}.page-hero-media,.school-hero-media{background:#07183d;overflow:hidden}.page-hero-media img,.school-hero-media img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}.apex-context-media{max-width:1180px;margin:0 auto 42px;padding:0 24px}.apex-context-media div{overflow:hidden;background:#07183d;aspect-ratio:16/7}.apex-context-media img{width:100%;height:100%;display:block;object-fit:cover;object-position:center}.apex-context-media figcaption{margin-top:10px;color:#475569;font-size:.82rem}@media(max-width:760px){header nav a[aria-current="page"]{box-shadow:none;background:#eef3fb}.apex-context-media{padding:0 18px;margin-bottom:28px}.apex-context-media div{aspect-ratio:4/3}}</style>`;
 const applyRouteImage=(html,pagePath)=>{
   const choice=imageForRoute(pagePath);
-  let out=html.replace('</head>',`${mediaCss}</head>`);
+  let out=html.replace('</head>',`${mediaCss}${formCss}</head>`);
   if(!choice) return out;
   const [file,alt]=choice,src=`${MEDIA}${file}`;
   if(/class="(?:page-hero-media|school-hero-media)"/i.test(out)) return out.replace(/(<div class="(?:page-hero-media|school-hero-media)"[^>]*>[\s\S]*?<img\b)([^>]*)(>)/i,(m,start,attrs,end)=>`${start}${attrs.replace(/\bsrc="[^"]*"/i,`src="${src}"`).replace(/\balt="[^"]*"/i,`alt="${alt}"`)}${end}`);
@@ -161,10 +164,29 @@ const DISCLAIMER=shell({title:'Disclaimer',description:'Important information ab
 });
 const LEGAL={'/terms-and-conditions':TERMS,'/privacy-policy':PRIVACY,'/disclaimer':DISCLAIMER};
 
+const readBody=req=>new Promise((resolve,reject)=>{const chunks=[];let size=0;req.on('data',chunk=>{size+=chunk.length;if(size>100000){reject(new Error('Request too large'));req.destroy();return}chunks.push(chunk)});req.on('end',()=>resolve(Buffer.concat(chunks)));req.on('error',reject)});
+const field=(form,key,max=4000)=>String(form.get(key)||'').trim().slice(0,max);
+async function handleEnquiry(req,res,type){
+  if(req.method!=='POST'){res.statusCode=405;res.setHeader('Allow','POST');return res.end('Method Not Allowed')}
+  const raw=await readBody(req),contentType=req.headers['content-type']||'';let form;
+  if(contentType.includes('application/json'))form=new Map(Object.entries(JSON.parse(raw.toString('utf8')||'{}')));
+  else form=new URLSearchParams(raw.toString('utf8'));
+  if(field(form,'website',200)){res.statusCode=200;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({ok:true}))}
+  const name=field(form,'name',160),email=field(form,'email',254),message=field(form,type==='contact'?'message':'notes',6000);
+  if(name.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||message.length<5){res.statusCode=422;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({message:'Please complete your name, a valid email address and enquiry details.'}))}
+  const reference=`APX-${new Date().toISOString().slice(0,10).replaceAll('-','')}-${crypto.randomUUID().slice(0,8).toUpperCase()}`;
+  const payload={reference,enquiry_type:type,name,email,phone:field(form,'phone',80)||null,organisation:field(form,'organisation',200)||null,interest:field(form,'interest',200)||null,programme:field(form,'programme',240)||null,learner_count:Number(field(form,'learner_count',8))||null,delivery_format:field(form,'format',100)||null,message};
+  const saved=await fetch(`${SUPABASE_URL}/rest/v1/public_enquiries`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(payload)});
+  if(!saved.ok){console.error('Enquiry save failed',saved.status,await saved.text());res.statusCode=503;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({message:'Your enquiry could not be saved right now. Please try again or email chairman@apexskillsinstitute.co.za.'}))}
+  res.statusCode=201;res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');return res.end(JSON.stringify({ok:true,reference}));
+}
+
 module.exports=async function(req,res){
   try{
     const incoming=new URL(req.url||'/',SITE);
     const p=incoming.pathname;
+    if(p==='/api/enquiries')return handleEnquiry(req,res,'contact');
+    if(p==='/api/group-training')return handleEnquiry(req,res,'group_training');
     if(p==='/terms'||p==='/terms.html'){res.statusCode=308;res.setHeader('Location','/terms-and-conditions');return res.end()}
     if(p==='/privacy'||p==='/privacy.html'){res.statusCode=308;res.setHeader('Location','/privacy-policy');return res.end()}
     if(p==='/index'||p==='/index.html'||p.endsWith('.html')){res.statusCode=308;res.setHeader('Location',canonicalRoute(p)+(incoming.search||''));return res.end()}
