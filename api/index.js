@@ -42,37 +42,40 @@ const mobileNavCss=`<style id="apex-mobile-navigation">@media(max-width:980px){h
 const mobileNavPolishCss=`<style>@media(max-width:980px){header nav:after{content:"Practical learning. Real capability.  •  9 Schools  •  60 programmes"!important}}</style>`;
 const imageForRoute=pagePath=>{
   const p=canonicalRoute(pagePath);
-  if(p==='/') return ['apex_02_team_collaboration.webp','Apex learners collaborating around a laptop'];
-  if(p==='/schools') return ['apex_04_classroom_learning.webp','Adult learners participating in an Apex classroom session'];
-  if(p==='/programmes') return ['apex_01_woman_studying_laptop.webp','Apex learner studying with a laptop and written notes'];
-  if(p==='/for-organisations') return ['apex_08_corporate_training_meeting.webp','Organisation-based professional training and discussion'];
-  if(p==='/about') return ['apex_07_graduate_diploma.webp','Learner celebrating completion of a learning programme'];
-  if(p==='/contact') return ['apex_06_professional_woman_tablet.webp','Professional learner using a tablet in the workplace'];
-  if(p==='/payment-flexibility') return ['apex_03_professional_man_laptop.webp','Professional reviewing programme information on a laptop'];
-  if(p==='/faculty-network') return ['apex_08_corporate_training_meeting.webp','Experienced facilitator leading an applied professional learning session'];
+  if(p==='/') return ['institutional/home_team_collaboration.webp','Apex learners collaborating on a practical laptop-based activity'];
+  if(p==='/schools') return ['institutional/schools_skills_training.webp','Facilitator presenting an applied skills training session'];
+  if(p==='/programmes') return ['institutional/programme_individual_study.webp','Apex learner completing an individual study activity'];
+  if(p==='/for-organisations') return ['institutional/organisational_boardroom_training.webp','Professionals participating in organisation-based boardroom training'];
+  if(p==='/about') return ['institutional/about_values_presentation.webp','Apex presenter discussing the institution’s values'];
+  if(p==='/contact') return ['institutional/contact_apex_lounge.webp','Apex Skills Institute branded reception and consultation space'];
+  if(p==='/payment-flexibility') return ['institutional/payment_professional_laptop.webp','Professional reviewing programme and payment information on a laptop'];
+  if(p==='/faculty-network') return ['institutional/faculty_workshop_facilitation.webp','Experienced facilitator leading an interactive applied-learning workshop'];
   if(p.startsWith('/schools/')){
     const slug=p.split('/').pop();
     const school={
-      'business-entrepreneurship':'apex_03_professional_man_laptop.webp',
-      'finance-administration':'apex_06_professional_woman_tablet.webp',
-      'human-resources-public-finance':'apex_08_corporate_training_meeting.webp',
-      'ohs-risk-compliance':'apex_04_classroom_learning.webp',
-      'digital-technology-data':'apex_09_student_books.webp',
-      'project-operations-built-environment':'apex_08_corporate_training_meeting.webp',
-      'public-sector-municipal-management':'apex_06_professional_woman_tablet.webp',
-      'supply-chain-fleet-logistics':'apex_02_team_collaboration.webp',
-      'agriculture-rural-enterprise':'apex_01_woman_studying_laptop.webp'
-    }[slug]||'apex_04_classroom_learning.webp';
-    return [school,'Apex applied-learning participants'];
+      'business-entrepreneurship':'schools/01_school_of_business_entrepreneurship.webp',
+      'finance-administration':'schools/02_school_of_finance_administration.webp',
+      'human-resources-public-finance':'schools/03_school_of_human_resources_public_finance.webp',
+      'ohs-risk-compliance':'schools/04_school_of_ohs_risk_compliance.webp',
+      'digital-technology-data':'schools/05_school_of_digital_technology_data.webp',
+      'project-operations-built-environment':'schools/06_school_of_project_operations_built_environment.webp',
+      'public-sector-municipal-management':'schools/07_school_of_public_sector_municipal_management.webp',
+      'supply-chain-fleet-logistics':'schools/08_school_of_supply_chain_fleet_logistics.webp',
+      'agriculture-rural-enterprise':'schools/09_school_of_agriculture_rural_enterprise.webp'
+    }[slug]||'institutional/schools_skills_training.webp';
+    return [school,`Applied-learning participants in the ${slug.replace(/-/g,' ')} school`];
   }
   if(p.startsWith('/programmes/')){
-    if(/farm|agri|rural|cooperative/.test(p)) return ['apex_01_woman_studying_laptop.webp','Learner developing practical enterprise capability'];
-    if(/digital|excel|cyber|data|sql|microsoft|ai-/.test(p)) return ['apex_09_student_books.webp','Learner building practical digital and workplace capability'];
-    if(/bookkeeping|payroll|finance|budget|office|records|administration/.test(p)) return ['apex_06_professional_woman_tablet.webp','Professional developing finance and administration capability'];
-    if(/health|safety|risk|incident|popia|compliance/.test(p)) return ['apex_04_classroom_learning.webp','Participants in a structured professional learning environment'];
-    if(/project|operations|facilities|construction|monitoring/.test(p)) return ['apex_08_corporate_training_meeting.webp','Applied organisational and project learning session'];
-    if(/public|municipal|government|procurement|supply|logistics|fleet|inventory|supplier/.test(p)) return ['apex_02_team_collaboration.webp','Apex learners collaborating on an applied workplace task'];
-    return ['apex_03_professional_man_laptop.webp','Professional learner completing an applied programme activity'];
+    if(/farm|agri|rural|cooperative/.test(p)) return ['schools/09_school_of_agriculture_rural_enterprise.webp','Agriculture and rural-enterprise learners working through a practical planning activity'];
+    if(/digital|excel|cyber|data|sql|microsoft|ai-/.test(p)) return ['schools/05_school_of_digital_technology_data.webp','Digital technology and data learners collaborating around analytical tools'];
+    if(/bookkeeping|payroll|finance|budget|office|records|administration/.test(p)) return ['schools/02_school_of_finance_administration.webp','Finance and administration learners completing an applied group exercise'];
+    if(/human-resource|hr-|people-management|labour|performance-management/.test(p)) return ['schools/03_school_of_human_resources_public_finance.webp','Human resources and public finance participants in a facilitated learning session'];
+    if(/health|safety|risk|incident|popia|compliance/.test(p)) return ['schools/04_school_of_ohs_risk_compliance.webp','Occupational health, safety, risk and compliance learners in a practical workshop'];
+    if(/project|operations|facilities|construction|monitoring|built-environment/.test(p)) return ['schools/06_school_of_project_operations_built_environment.webp','Project, operations and built-environment participants reviewing practical plans'];
+    if(/supply|logistics|fleet|inventory|supplier|warehouse/.test(p)) return ['schools/08_school_of_supply_chain_fleet_logistics.webp','Supply chain, fleet and logistics learners analysing an operational workflow'];
+    if(/public|municipal|government|procurement/.test(p)) return ['schools/07_school_of_public_sector_municipal_management.webp','Public-sector and municipal-management participants discussing institutional capability'];
+    if(/business|entrepreneur|tender|enterprise|sme/.test(p)) return ['schools/01_school_of_business_entrepreneurship.webp','Business and entrepreneurship learners collaborating on an enterprise activity'];
+    return ['institutional/programme_individual_study.webp','Professional learner completing an applied programme activity'];
   }
   return null;
 };
