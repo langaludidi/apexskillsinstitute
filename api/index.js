@@ -104,7 +104,7 @@ const cleanHtml=(html,pagePath)=>{
   out=out.replace(/info@apexskills\.ac\.za/gi,'info@apexskillsinstitute.co.za');
   out=out.replace(/\/assets\/apex-logo-light\.webp/g,'/assets/brand/apex-logo-light-hd.webp');
   out=out.replace(/\/assets\/apex-logo-dark\.webp/g,'/assets/brand/apex-logo-dark-hd.webp');
-  out=out.replace(/\/assets\/site\.js\?v=[^'"<]+/g,'/assets/site.js?v=2.17.0');
+  out=out.replace(/\/assets\/site\.js\?v=[^'"<]+/g,'/assets/site.js?v=2.18.0');
   out=out.replace(/<a\b([^>]*?)href="\/privacy-policy"([^>]*)>Privacy<\/a>\s*·\s*<a\b([^>]*?)href="\/terms-and-conditions"([^>]*)>Terms<\/a>/i,'<a$1href="/privacy-policy"$2>Privacy Policy</a> · <a$3href="/terms-and-conditions"$4>Terms &amp; Conditions</a> · <a href="/disclaimer" style="display:inline;margin:0">Disclaimer</a>');
   out=out.replace(/(<a[^>]+href="\/disclaimer"[^>]*>Disclaimer<\/a>)/i,'$1 · <a href="/cookie-policy" style="display:inline;margin:0">Cookie Policy</a> · <a href="#cookie-settings" class="cookie-settings-link" style="display:inline;margin:0">Cookie Settings</a>');
   out=out.replace(/(<h3 class="footer-heading">Institution<\/h3>[\s\S]*?<a href="\/about">About Apex<\/a>)/i,'$1<a href="/faculty-network">Faculty Network</a>');
