@@ -104,7 +104,7 @@ const cleanHtml=(html,pagePath)=>{
   out=out.replace(/info@apexskills\.ac\.za/gi,'info@apexskillsinstitute.co.za');
   out=out.replace(/\/assets\/apex-logo-light\.webp/g,'/assets/brand/apex-logo-light-hd.webp');
   out=out.replace(/\/assets\/apex-logo-dark\.webp/g,'/assets/brand/apex-logo-dark-hd.webp');
-  out=out.replace(/\/assets\/site\.js\?v=[^'"<]+/g,'/assets/site.js?v=2.16.0');
+  out=out.replace(/\/assets\/site\.js\?v=[^'"<]+/g,'/assets/site.js?v=2.17.0');
   out=out.replace(/<a\b([^>]*?)href="\/privacy-policy"([^>]*)>Privacy<\/a>\s*·\s*<a\b([^>]*?)href="\/terms-and-conditions"([^>]*)>Terms<\/a>/i,'<a$1href="/privacy-policy"$2>Privacy Policy</a> · <a$3href="/terms-and-conditions"$4>Terms &amp; Conditions</a> · <a href="/disclaimer" style="display:inline;margin:0">Disclaimer</a>');
   out=out.replace(/(<a[^>]+href="\/disclaimer"[^>]*>Disclaimer<\/a>)/i,'$1 · <a href="/cookie-policy" style="display:inline;margin:0">Cookie Policy</a> · <a href="#cookie-settings" class="cookie-settings-link" style="display:inline;margin:0">Cookie Settings</a>');
   out=out.replace(/(<h3 class="footer-heading">Institution<\/h3>[\s\S]*?<a href="\/about">About Apex<\/a>)/i,'$1<a href="/faculty-network">Faculty Network</a>');
@@ -207,10 +207,12 @@ async function handleEnquiry(req,res,type){
   if(contentType.includes('application/json'))form=new Map(Object.entries(JSON.parse(raw.toString('utf8')||'{}')));
   else form=new URLSearchParams(raw.toString('utf8'));
   if(field(form,'website',200)){res.statusCode=200;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({ok:true}))}
-  const name=field(form,'name',160),email=field(form,'email',254),message=field(form,type==='contact'?'message':'notes',6000);
+  const name=field(form,'name',160),email=field(form,'email',254);
+  const programme=field(form,'programme',240)||field(form,'programmes',240);
+  const message=type==='contact'?field(form,'message',6000):(field(form,'notes',6000)||programme);
   if(name.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||message.length<5){res.statusCode=422;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({message:'Please complete your name, a valid email address and enquiry details.'}))}
   const reference=`APX-${new Date().toISOString().slice(0,10).replaceAll('-','')}-${crypto.randomUUID().slice(0,8).toUpperCase()}`;
-  const payload={reference,enquiry_type:type,name,email,phone:field(form,'phone',80)||null,organisation:field(form,'organisation',200)||null,interest:field(form,'interest',200)||null,programme:field(form,'programme',240)||null,learner_count:Number(field(form,'learner_count',8))||null,delivery_format:field(form,'format',100)||null,message};
+  const payload={reference,enquiry_type:type,name,email,phone:field(form,'phone',80)||null,organisation:field(form,'organisation',200)||null,interest:field(form,'interest',200)||null,programme:programme||null,learner_count:Number(field(form,'learner_count',8))||null,delivery_format:field(form,'format',100)||null,message};
   const saved=await fetch(`${SUPABASE_URL}/rest/v1/public_enquiries`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(payload)});
   if(!saved.ok){console.error('Enquiry save failed',saved.status,await saved.text());res.statusCode=503;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({message:'Your enquiry could not be saved right now. Please try again or email info@apexskillsinstitute.co.za.'}))}
   res.statusCode=201;res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');return res.end(JSON.stringify({ok:true,reference}));
