@@ -85,7 +85,7 @@ const applyRouteImage=(html,pagePath)=>{
   let out=html.replace('</head>',`${mediaCss}${formCss}${mobileNavCss}${mobileNavPolishCss}${cookieHead}${designHead}</head>`);
   if(!choice) return out;
   const [file,alt]=choice,src=`${MEDIA}${file}`;
-  if(/class="(?:page-hero-media|school-hero-media)"/i.test(out)) return out.replace(/(<div class="(?:page-hero-media|school-hero-media)"[^>]*>[\s\S]*?<img\b)([^>]*)(>)/i,(m,start,attrs,end)=>`${start}${attrs.replace(/\bsrc="[^"]*"/i,`src="${src}"`).replace(/\balt="[^"]*"/i,`alt="${alt}"`)}${end}`);
+  if(/class="(?:page-hero-media|school-hero-media|photo-frame)"/i.test(out)) return out.replace(/(<(?:div|figure) class="(?:page-hero-media|school-hero-media|photo-frame)"[^>]*>[\s\S]*?<img\b)([^>]*)(>)/i,(m,start,attrs,end)=>`${start}${attrs.replace(/\bsrc="[^"]*"/i,`src="${src}"`).replace(/\balt="[^"]*"/i,`alt="${alt}"`)}${end}`);
   if(pagePath==='/') return out.replace(/(<img\b[^>]*?alt=")Learners collaborating around a laptop("[^>]*?src=")([^"]+)/i,`$1${alt}$2${src}`);
   if(pagePath.startsWith('/programmes/')){
     const figure=`<figure class="apex-context-media"><div><img src="${src}" alt="${alt}" width="1536" height="1024" loading="eager" decoding="async"></div></figure>`;
