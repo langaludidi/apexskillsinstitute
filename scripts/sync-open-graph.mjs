@@ -12,7 +12,8 @@ const pages = [
 for (const [file, route] of pages) {
   let html = await readFile(file, 'utf8');
   const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim();
-  const description = html.match(/<meta\b[^>]*name=(['"])description\1[^>]*content=(['"])(.*?)\2[^>]*>/i)?.[3]?.trim();
+  const description = (html.match(/<meta\b[^>]*name=(['"])description\1[^>]*content=(['"])([^'"]*)\2[^>]*>/i)?.[3]
+    || html.match(/<meta\b[^>]*content=(['"])([^'"]*)\1[^>]*name=(['"])description\3[^>]*>/i)?.[2])?.trim();
   if (!title || !description) throw new Error(`${file}: missing title or description`);
 
   const canonical = `${site}${route}`;

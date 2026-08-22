@@ -39,8 +39,8 @@ const normaliseSocialMetadata=(html,pagePath)=>{
   const canonical=`${SITE}${route==='/'?'/':route}`;
   const image=`${SITE}/assets/apex-social-card-v3.jpg`;
   const title=(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'Apex Skills Institute').trim();
-  const description=(html.match(/<meta\b[^>]*name=(['"])description\1[^>]*content=(['"])(.*?)\2[^>]*>/i)?.[3]
-    ||html.match(/<meta\b[^>]*content=(['"])(.*?)\1[^>]*name=(['"])description\3[^>]*>/i)?.[2]
+  const description=(html.match(/<meta\b[^>]*name=(['"])description\1[^>]*content=(['"])([^'"]*)\2[^>]*>/i)?.[3]
+    ||html.match(/<meta\b[^>]*content=(['"])([^'"]*)\1[^>]*name=(['"])description\3[^>]*>/i)?.[2]
     ||'Practical, applied professional and skills programmes for individuals and organisations.').trim();
   const tags=`<link rel="canonical" href="${canonical}"><meta property="og:locale" content="en_ZA"><meta property="og:site_name" content="Apex Skills Institute"><meta property="og:type" content="website"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:url" content="${canonical}"><meta property="og:image" content="${image}"><meta property="og:image:secure_url" content="${image}"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Apex Skills Institute — Practical Learning for Real Capability"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="${image}"><meta name="twitter:image:alt" content="Apex Skills Institute — Practical Learning for Real Capability">`;
   let out=html
