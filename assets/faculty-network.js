@@ -18,7 +18,7 @@
   var availabilityMap={'Weekdays':'weekdays','Evenings':'evenings','Weekends':'weekends','Project-dependent':'project_dependent'};
   var rateMap={'Prefer not to specify':'prefer_not_to_specify','Hourly':'hourly','Daily':'daily','Per programme':'per_programme','Negotiable':'negotiable'};
 
-  function render(){steps.forEach(function(s,i){s.classList.toggle('active',i===idx)});prev.disabled=idx===0;next.hidden=idx===steps.length-1;submit.hidden=idx!==steps.length-1;label.textContent='Step '+(idx+1)+' of '+steps.length;bar.style.width=((idx+1)/steps.length*100)+'%';}
+  function render(){steps.forEach(function(s,i){s.classList.toggle('active',i===idx)});prev.disabled=idx===0;prev.hidden=idx===0;next.hidden=idx===steps.length-1;submit.hidden=idx!==steps.length-1;label.textContent='Step '+(idx+1)+' of '+steps.length;bar.style.width=((idx+1)/steps.length*100)+'%';}
   function checkedValues(name){return Array.from(form.querySelectorAll('input[name="'+name+'"]:checked')).map(function(x){return x.value;});}
   function showMessage(text,type){if(!message)return;message.hidden=!text;message.textContent=text||'';message.className='faculty-form-message '+(type||'');if(text)message.scrollIntoView({behavior:'smooth',block:'nearest'});}
   function failGroup(selector,text){var el=form.querySelector(selector);showMessage(text,'error');if(el)el.focus();return false;}
