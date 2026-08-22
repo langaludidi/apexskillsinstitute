@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#07183d"/>
+  <circle cx="1080" cy="50" r="310" fill="#153a8a" opacity="0.72"/>
+  <circle cx="1120" cy="540" r="240" fill="#0a1b4a" opacity="0.82"/>
+  <rect x="72" y="420" width="112" height="8" rx="4" fill="#d8aa42"/>
+  <text x="72" y="484" fill="#ffffff" font-family="Georgia, serif" font-size="54" font-weight="700">Practical learning.</text>
+  <text x="72" y="546" fill="#ffffff" font-family="Georgia, serif" font-size="54" font-weight="700">Real capability.</text>
+  <text x="76" y="590" fill="#d8aa42" font-family="Arial, sans-serif" font-size="21" font-weight="700" letter-spacing="3">9 SCHOOLS  ·  60 PROGRAMMES  ·  APPLIED LEARNING</text>
+</svg>
