@@ -31,11 +31,62 @@ const markCurrentNavigation=(html,pagePath)=>{
     return target===section&&!isCta?`<a${attrs} aria-current="page">`:`<a${attrs}>`;
   }));
 };
+const MEDIA='/assets/media/';
+const imageForRoute=pagePath=>{
+  const p=canonicalRoute(pagePath);
+  if(p==='/') return ['apex_02_team_collaboration.webp','Apex learners collaborating around a laptop'];
+  if(p==='/schools') return ['apex_04_classroom_learning.webp','Adult learners participating in an Apex classroom session'];
+  if(p==='/programmes') return ['apex_01_woman_studying_laptop.webp','Apex learner studying with a laptop and written notes'];
+  if(p==='/for-organisations') return ['apex_08_corporate_training_meeting.webp','Organisation-based professional training and discussion'];
+  if(p==='/about') return ['apex_07_graduate_diploma.webp','Learner celebrating completion of a learning programme'];
+  if(p==='/contact') return ['apex_06_professional_woman_tablet.webp','Professional learner using a tablet in the workplace'];
+  if(p==='/payment-flexibility') return ['apex_03_professional_man_laptop.webp','Professional reviewing programme information on a laptop'];
+  if(p==='/faculty-network') return ['apex_08_corporate_training_meeting.webp','Experienced facilitator leading an applied professional learning session'];
+  if(p.startsWith('/schools/')){
+    const slug=p.split('/').pop();
+    const school={
+      'business-entrepreneurship':'apex_03_professional_man_laptop.webp',
+      'finance-administration':'apex_06_professional_woman_tablet.webp',
+      'human-resources-public-finance':'apex_08_corporate_training_meeting.webp',
+      'ohs-risk-compliance':'apex_04_classroom_learning.webp',
+      'digital-technology-data':'apex_09_student_books.webp',
+      'project-operations-built-environment':'apex_08_corporate_training_meeting.webp',
+      'public-sector-municipal-management':'apex_06_professional_woman_tablet.webp',
+      'supply-chain-fleet-logistics':'apex_02_team_collaboration.webp',
+      'agriculture-rural-enterprise':'apex_01_woman_studying_laptop.webp'
+    }[slug]||'apex_04_classroom_learning.webp';
+    return [school,'Apex applied-learning participants'];
+  }
+  if(p.startsWith('/programmes/')){
+    if(/farm|agri|rural|cooperative/.test(p)) return ['apex_01_woman_studying_laptop.webp','Learner developing practical enterprise capability'];
+    if(/digital|excel|cyber|data|sql|microsoft|ai-/.test(p)) return ['apex_09_student_books.webp','Learner building practical digital and workplace capability'];
+    if(/bookkeeping|payroll|finance|budget|office|records|administration/.test(p)) return ['apex_06_professional_woman_tablet.webp','Professional developing finance and administration capability'];
+    if(/health|safety|risk|incident|popia|compliance/.test(p)) return ['apex_04_classroom_learning.webp','Participants in a structured professional learning environment'];
+    if(/project|operations|facilities|construction|monitoring/.test(p)) return ['apex_08_corporate_training_meeting.webp','Applied organisational and project learning session'];
+    if(/public|municipal|government|procurement|supply|logistics|fleet|inventory|supplier/.test(p)) return ['apex_02_team_collaboration.webp','Apex learners collaborating on an applied workplace task'];
+    return ['apex_03_professional_man_laptop.webp','Professional learner completing an applied programme activity'];
+  }
+  return null;
+};
+const mediaCss=`<style id="apex-media-quality">header nav a[aria-current="page"]{color:#07183d;box-shadow:inset 0 -3px #d85700}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #e56a14!important;outline-offset:3px}.brand img,.footer-logo{height:auto;image-rendering:auto}.page-hero-media,.school-hero-media{background:#07183d;overflow:hidden}.page-hero-media img,.school-hero-media img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}.apex-context-media{max-width:1180px;margin:0 auto 42px;padding:0 24px}.apex-context-media div{overflow:hidden;background:#07183d;aspect-ratio:16/7}.apex-context-media img{width:100%;height:100%;display:block;object-fit:cover;object-position:center}.apex-context-media figcaption{margin-top:10px;color:#475569;font-size:.82rem}@media(max-width:760px){header nav a[aria-current="page"]{box-shadow:none;background:#eef3fb}.apex-context-media{padding:0 18px;margin-bottom:28px}.apex-context-media div{aspect-ratio:4/3}}</style>`;
+const applyRouteImage=(html,pagePath)=>{
+  const choice=imageForRoute(pagePath);
+  let out=html.replace('</head>',`${mediaCss}</head>`);
+  if(!choice) return out;
+  const [file,alt]=choice,src=`${MEDIA}${file}`;
+  if(/class="(?:page-hero-media|school-hero-media)"/i.test(out)) return out.replace(/(<div class="(?:page-hero-media|school-hero-media)"[^>]*>[\s\S]*?<img\b)([^>]*)(>)/i,(m,start,attrs,end)=>`${start}${attrs.replace(/\bsrc="[^"]*"/i,`src="${src}"`).replace(/\balt="[^"]*"/i,`alt="${alt}"`)}${end}`);
+  if(pagePath==='/') return out.replace(/(<img\b[^>]*?alt=")Learners collaborating around a laptop("[^>]*?src=")([^"]+)/i,`$1${alt}$2${src}`);
+  if(pagePath.startsWith('/programmes/')){
+    const figure=`<figure class="apex-context-media"><div><img src="${src}" alt="${alt}" width="1536" height="1024" loading="eager" decoding="async"></div></figure>`;
+    return out.replace(/(<\/section>\s*)(<section class="section">)/i,`$1${figure}$2`);
+  }
+  return out;
+};
 const cleanHtml=(html,pagePath)=>{
   let out=html.replace(/\b(href|src|action)=(['"])(.*?)\2/gi,(m,a,q,u)=>`${a}=${q}${cleanInternalUrl(u,pagePath)}${q}`);
   out=out.replace(/<a\b([^>]*?)href="\/privacy-policy"([^>]*)>Privacy<\/a>\s*·\s*<a\b([^>]*?)href="\/terms-and-conditions"([^>]*)>Terms<\/a>/i,'<a$1href="/privacy-policy"$2>Privacy Policy</a> · <a$3href="/terms-and-conditions"$4>Terms &amp; Conditions</a> · <a href="/disclaimer" style="display:inline;margin:0">Disclaimer</a>');
   out=out.replace(/(<h3 class="footer-heading">Institution<\/h3>[\s\S]*?<a href="\/about">About Apex<\/a>)/i,'$1<a href="/faculty-network">Faculty Network</a>');
-  return markCurrentNavigation(out,pagePath);
+  return applyRouteImage(markCurrentNavigation(out,pagePath),pagePath);
 };
 
 function shell({title,description,label,heading,body}){
