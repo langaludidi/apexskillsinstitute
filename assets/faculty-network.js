@@ -1,4 +1,16 @@
 (function(){
+  if(!document.querySelector('body > header')){
+    var header=document.createElement('header');
+    header.innerHTML='<div class="wrap head"><a class="brand" href="/" aria-label="Apex Skills Institute home"><img src="/assets/apex-logo-light.webp" alt="Apex Skills Institute"></a><nav aria-label="Primary navigation"><a href="/schools">Schools</a><a href="/programmes">Programmes</a><a href="/for-organisations">For Organisations</a><a href="/about">About</a><a href="/contact">Contact</a><a class="nav-cta" href="/contact">Enquire</a></nav><button class="menu" type="button" aria-expanded="false" aria-label="Open menu"><span></span><span></span><span></span></button></div>';
+    document.body.insertBefore(header,document.body.firstChild);
+    var skip=document.createElement('a');skip.className='skip';skip.href='#main';skip.textContent='Skip to content';document.body.insertBefore(skip,header);
+    var main=document.querySelector('main');if(main)main.id='main';
+    var menu=header.querySelector('.menu'),nav=header.querySelector('nav');
+    function setMenu(open){nav.classList.toggle('open',open);menu.setAttribute('aria-expanded',open?'true':'false');menu.setAttribute('aria-label',open?'Close menu':'Open menu');document.body.classList.toggle('menu-open',open)}
+    menu.addEventListener('click',function(){setMenu(!nav.classList.contains('open'))});
+    nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){setMenu(false)})});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&nav.classList.contains('open')){setMenu(false);menu.focus()}});
+  }
   var form=document.getElementById('faculty-form'); if(!form)return;
   var steps=Array.from(form.querySelectorAll('.faculty-step'));
   var prev=document.getElementById('faculty-prev'), next=document.getElementById('faculty-next'), submit=document.getElementById('faculty-submit');
