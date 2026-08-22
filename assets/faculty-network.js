@@ -1,4 +1,21 @@
 (function(){
+  if(!document.querySelector('body > header')){
+    var header=document.createElement('header');
+    header.innerHTML='<div class="wrap head"><a class="brand" href="/" aria-label="Apex Skills Institute home"><img src="/assets/brand/apex-logo-light-hd.webp" alt="Apex Skills Institute"></a><nav aria-label="Primary navigation"><a href="/schools">Schools</a><a href="/programmes">Programmes</a><a href="/for-organisations">For Organisations</a><a href="/about">About</a><a href="/contact">Contact</a><a class="nav-cta" href="/contact">Enquire</a></nav><button class="menu" type="button" aria-expanded="false" aria-label="Open menu"><span></span><span></span><span></span></button></div>';
+    document.body.insertBefore(header,document.body.firstChild);
+    var skip=document.createElement('a');skip.className='skip';skip.href='#main';skip.textContent='Skip to content';document.body.insertBefore(skip,header);
+    var main=document.querySelector('main');if(main)main.id='main';
+    var menu=header.querySelector('.menu'),nav=header.querySelector('nav');
+    function setMenu(open){nav.classList.toggle('open',open);menu.setAttribute('aria-expanded',open?'true':'false');menu.setAttribute('aria-label',open?'Close menu':'Open menu');document.body.classList.toggle('menu-open',open)}
+    menu.addEventListener('click',function(){setMenu(!nav.classList.contains('open'))});
+    nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){setMenu(false)})});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&nav.classList.contains('open')){setMenu(false);menu.focus()}});
+  }
+  var facultyFooter=document.querySelector('.v215-footer');
+  if(facultyFooter){
+    facultyFooter.className='';
+    facultyFooter.innerHTML='<div class="wrap"><div class="foot-grid"><div><img class="footer-logo" src="/assets/brand/apex-logo-dark-hd.webp" alt="Apex Skills Institute"><p>Practical learning for real capability. Applied professional and skills programmes for individuals and organisations.</p></div><div><h3 class="footer-heading">Explore</h3><a href="/schools">Schools</a><a href="/programmes">Programmes</a><a href="/for-organisations">For Organisations</a></div><div><h3 class="footer-heading">Institution</h3><a href="/about">About Apex</a><a href="/faculty-network" aria-current="page">Faculty Network</a><a href="/terms-and-conditions#programme-status">Programme status</a><a href="/contact">Contact</a><a href="/payment-flexibility">Payment Flexibility</a></div><div><h3 class="footer-heading">Contact</h3><a href="tel:+27731433319">073 143 3319</a><a href="mailto:info@apexskillsinstitute.co.za">info@apexskillsinstitute.co.za</a><a href="/">apexskillsinstitute.co.za</a><span>Port Elizabeth, Eastern Cape</span></div></div><div class="fine"><span>Apex Skills Institute (Pty) Ltd · 2026/153633/07</span><span><a href="/privacy-policy">Privacy Policy</a> · <a href="/cookie-policy">Cookie Policy</a> · <a href="#cookie-settings" class="cookie-settings-link">Cookie Settings</a> · <a href="/terms-and-conditions">Terms &amp; Conditions</a> · <a href="/disclaimer">Disclaimer</a> · © 2026 Apex Skills Institute</span></div></div>';
+  }
   var form=document.getElementById('faculty-form'); if(!form)return;
   var steps=Array.from(form.querySelectorAll('.faculty-step'));
   var prev=document.getElementById('faculty-prev'), next=document.getElementById('faculty-next'), submit=document.getElementById('faculty-submit');
@@ -18,7 +35,7 @@
   var availabilityMap={'Weekdays':'weekdays','Evenings':'evenings','Weekends':'weekends','Project-dependent':'project_dependent'};
   var rateMap={'Prefer not to specify':'prefer_not_to_specify','Hourly':'hourly','Daily':'daily','Per programme':'per_programme','Negotiable':'negotiable'};
 
-  function render(){steps.forEach(function(s,i){s.classList.toggle('active',i===idx)});prev.disabled=idx===0;next.hidden=idx===steps.length-1;submit.hidden=idx!==steps.length-1;label.textContent='Step '+(idx+1)+' of '+steps.length;bar.style.width=((idx+1)/steps.length*100)+'%';}
+  function render(){steps.forEach(function(s,i){s.classList.toggle('active',i===idx)});prev.disabled=idx===0;prev.hidden=idx===0;next.hidden=idx===steps.length-1;submit.hidden=idx!==steps.length-1;label.textContent='Step '+(idx+1)+' of '+steps.length;bar.style.width=((idx+1)/steps.length*100)+'%';}
   function checkedValues(name){return Array.from(form.querySelectorAll('input[name="'+name+'"]:checked')).map(function(x){return x.value;});}
   function showMessage(text,type){if(!message)return;message.hidden=!text;message.textContent=text||'';message.className='faculty-form-message '+(type||'');if(text)message.scrollIntoView({behavior:'smooth',block:'nearest'});}
   function failGroup(selector,text){var el=form.querySelector(selector);showMessage(text,'error');if(el)el.focus();return false;}
