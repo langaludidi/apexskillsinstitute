@@ -35,6 +35,7 @@ const markCurrentNavigation=(html,pagePath)=>{
 };
 const MEDIA='/assets/media/';
 const formCss=`<style id="apex-form-feedback">.form-feedback{margin-top:14px;padding:12px 14px;border-radius:8px;background:#eef3fb;color:#07183d}.form-feedback:empty{display:none}.form-feedback.success{background:#e8f6ed;color:#155b31}.form-feedback.error{background:#fff0ed;color:#8c241b}button:disabled{cursor:wait;opacity:.7}</style>`;
+const mobileNavCss=`<style id="apex-mobile-navigation">@media(max-width:980px){html{scroll-padding-top:84px}body{padding-top:74px}header{position:fixed!important;top:0!important;right:0!important;left:0!important;width:100%!important;z-index:1000!important}header nav{position:fixed!important;top:74px!important;right:0!important;bottom:0!important;left:0!important;height:auto!important;min-height:0!important;max-height:calc(100dvh - 74px)!important;z-index:999!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important}body.menu-open{overflow:hidden!important;overscroll-behavior:none!important}}@media(max-width:600px){html{scroll-padding-top:78px}body{padding-top:68px}header nav{top:68px!important;max-height:calc(100dvh - 68px)!important}}</style>`;
 const imageForRoute=pagePath=>{
   const p=canonicalRoute(pagePath);
   if(p==='/') return ['apex_02_team_collaboration.webp','Apex learners collaborating around a laptop'];
@@ -74,7 +75,7 @@ const imageForRoute=pagePath=>{
 const mediaCss=`<style id="apex-media-quality">header nav a[aria-current="page"]{color:#07183d;box-shadow:inset 0 -3px #d85700}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #e56a14!important;outline-offset:3px}.brand img,.footer-logo{height:auto;image-rendering:auto}.page-hero-media,.school-hero-media{background:#07183d;overflow:hidden}.page-hero-media img,.school-hero-media img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}.apex-context-media{max-width:1180px;margin:0 auto 42px;padding:0 24px}.apex-context-media div{overflow:hidden;background:#07183d;aspect-ratio:16/7}.apex-context-media img{width:100%;height:100%;display:block;object-fit:cover;object-position:center}.apex-context-media figcaption{margin-top:10px;color:#475569;font-size:.82rem}@media(max-width:760px){header nav a[aria-current="page"]{box-shadow:none;background:#eef3fb}.apex-context-media{padding:0 18px;margin-bottom:28px}.apex-context-media div{aspect-ratio:4/3}}</style>`;
 const applyRouteImage=(html,pagePath)=>{
   const choice=imageForRoute(pagePath);
-  let out=html.replace('</head>',`${mediaCss}${formCss}</head>`);
+  let out=html.replace('</head>',`${mediaCss}${formCss}${mobileNavCss}</head>`);
   if(!choice) return out;
   const [file,alt]=choice,src=`${MEDIA}${file}`;
   if(/class="(?:page-hero-media|school-hero-media)"/i.test(out)) return out.replace(/(<div class="(?:page-hero-media|school-hero-media)"[^>]*>[\s\S]*?<img\b)([^>]*)(>)/i,(m,start,attrs,end)=>`${start}${attrs.replace(/\bsrc="[^"]*"/i,`src="${src}"`).replace(/\balt="[^"]*"/i,`alt="${alt}"`)}${end}`);
