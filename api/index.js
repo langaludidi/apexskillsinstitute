@@ -1,16 +1,96 @@
 const ORIGIN='https://apex-skills-institute-rmlx0fgdj-ludidil-5352s-projects.vercel.app';
 const SITE='https://apexskillsinstitute.co.za';
+const SUPABASE_URL='https://vmgmjvakronmkncipzhh.supabase.co';
+const SUPABASE_KEY='sb_publishable_KSA8xpm5fMS7IsckTTQEjQ_nCgAh5UB';
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cleanPath=p=>{
-  if(p==='/index.html') return '/';
+  if(p==='/index'||p==='/index.html') return '/';
   if(p.endsWith('.html')) return p.slice(0,-5)||'/';
   return p;
 };
-const cleanHtml=html=>html
-  .replace(/(href|action)=(['"])([^'"#?]+)\.html([?#][^'"]*)?\2/gi,(m,a,q,u,s='')=>`${a}=${q}${u}${s}${q}`)
-  .replace(/(href|action)=(['"])index\.html([?#][^'"]*)?\2/gi,(m,a,q,s='')=>`${a}=${q}/${s}${q}`)
-  .replace(/https:\/\/apexskillsinstitute\.co\.za\/([a-z0-9\/-]+)\.html/gi,`${SITE}/$1`);
+const canonicalRoute=p=>{
+  p=cleanPath(p);
+  if(p==='/terms') return '/terms-and-conditions';
+  if(p==='/privacy') return '/privacy-policy';
+  return p;
+};
+const cleanInternalUrl=(raw,pagePath)=>{
+  if(!raw||raw.startsWith('#')||/^(mailto:|tel:|sms:|javascript:|data:)/i.test(raw)) return raw;
+  try{
+    const u=new URL(raw,new URL(pagePath,SITE));
+    if(u.origin!==SITE) return raw;
+    u.pathname=canonicalRoute(u.pathname);
+    return `${u.pathname}${u.search}${u.hash}`;
+  }catch{return raw}
+};
+const markCurrentNavigation=(html,pagePath)=>{
+  const section=pagePath.startsWith('/schools/')?'/schools':pagePath.startsWith('/programmes/')?'/programmes':canonicalRoute(pagePath);
+  return html.replace(/(<header\b[\s\S]*?<nav\b[\s\S]*?<\/nav>)/i,nav=>nav.replace(/<a\b([^>]*?)href=(['"])(.*?)\2([^>]*)>/gi,(m,before,q,href,after)=>{
+    const target=cleanInternalUrl(href,pagePath).split(/[?#]/)[0];
+    const attrs=`${before}href=${q}${href}${q}${after}`.replace(/\saria-current=(['"])page\1/gi,'');
+    const isCta=/\bnav-cta\b/i.test(`${before} ${after}`);
+    return target===section&&!isCta?`<a${attrs} aria-current="page">`:`<a${attrs}>`;
+  }));
+};
+const MEDIA='/assets/media/';
+const formCss=`<style id="apex-form-feedback">.form-feedback{margin-top:14px;padding:12px 14px;border-radius:8px;background:#eef3fb;color:#07183d}.form-feedback:empty{display:none}.form-feedback.success{background:#e8f6ed;color:#155b31}.form-feedback.error{background:#fff0ed;color:#8c241b}button:disabled{cursor:wait;opacity:.7}</style>`;
+const imageForRoute=pagePath=>{
+  const p=canonicalRoute(pagePath);
+  if(p==='/') return ['apex_02_team_collaboration.webp','Apex learners collaborating around a laptop'];
+  if(p==='/schools') return ['apex_04_classroom_learning.webp','Adult learners participating in an Apex classroom session'];
+  if(p==='/programmes') return ['apex_01_woman_studying_laptop.webp','Apex learner studying with a laptop and written notes'];
+  if(p==='/for-organisations') return ['apex_08_corporate_training_meeting.webp','Organisation-based professional training and discussion'];
+  if(p==='/about') return ['apex_07_graduate_diploma.webp','Learner celebrating completion of a learning programme'];
+  if(p==='/contact') return ['apex_06_professional_woman_tablet.webp','Professional learner using a tablet in the workplace'];
+  if(p==='/payment-flexibility') return ['apex_03_professional_man_laptop.webp','Professional reviewing programme information on a laptop'];
+  if(p==='/faculty-network') return ['apex_08_corporate_training_meeting.webp','Experienced facilitator leading an applied professional learning session'];
+  if(p.startsWith('/schools/')){
+    const slug=p.split('/').pop();
+    const school={
+      'business-entrepreneurship':'apex_03_professional_man_laptop.webp',
+      'finance-administration':'apex_06_professional_woman_tablet.webp',
+      'human-resources-public-finance':'apex_08_corporate_training_meeting.webp',
+      'ohs-risk-compliance':'apex_04_classroom_learning.webp',
+      'digital-technology-data':'apex_09_student_books.webp',
+      'project-operations-built-environment':'apex_08_corporate_training_meeting.webp',
+      'public-sector-municipal-management':'apex_06_professional_woman_tablet.webp',
+      'supply-chain-fleet-logistics':'apex_02_team_collaboration.webp',
+      'agriculture-rural-enterprise':'apex_01_woman_studying_laptop.webp'
+    }[slug]||'apex_04_classroom_learning.webp';
+    return [school,'Apex applied-learning participants'];
+  }
+  if(p.startsWith('/programmes/')){
+    if(/farm|agri|rural|cooperative/.test(p)) return ['apex_01_woman_studying_laptop.webp','Learner developing practical enterprise capability'];
+    if(/digital|excel|cyber|data|sql|microsoft|ai-/.test(p)) return ['apex_09_student_books.webp','Learner building practical digital and workplace capability'];
+    if(/bookkeeping|payroll|finance|budget|office|records|administration/.test(p)) return ['apex_06_professional_woman_tablet.webp','Professional developing finance and administration capability'];
+    if(/health|safety|risk|incident|popia|compliance/.test(p)) return ['apex_04_classroom_learning.webp','Participants in a structured professional learning environment'];
+    if(/project|operations|facilities|construction|monitoring/.test(p)) return ['apex_08_corporate_training_meeting.webp','Applied organisational and project learning session'];
+    if(/public|municipal|government|procurement|supply|logistics|fleet|inventory|supplier/.test(p)) return ['apex_02_team_collaboration.webp','Apex learners collaborating on an applied workplace task'];
+    return ['apex_03_professional_man_laptop.webp','Professional learner completing an applied programme activity'];
+  }
+  return null;
+};
+const mediaCss=`<style id="apex-media-quality">header nav a[aria-current="page"]{color:#07183d;box-shadow:inset 0 -3px #d85700}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #e56a14!important;outline-offset:3px}.brand img,.footer-logo{height:auto;image-rendering:auto}.page-hero-media,.school-hero-media{background:#07183d;overflow:hidden}.page-hero-media img,.school-hero-media img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}.apex-context-media{max-width:1180px;margin:0 auto 42px;padding:0 24px}.apex-context-media div{overflow:hidden;background:#07183d;aspect-ratio:16/7}.apex-context-media img{width:100%;height:100%;display:block;object-fit:cover;object-position:center}.apex-context-media figcaption{margin-top:10px;color:#475569;font-size:.82rem}@media(max-width:760px){header nav a[aria-current="page"]{box-shadow:none;background:#eef3fb}.apex-context-media{padding:0 18px;margin-bottom:28px}.apex-context-media div{aspect-ratio:4/3}}</style>`;
+const applyRouteImage=(html,pagePath)=>{
+  const choice=imageForRoute(pagePath);
+  let out=html.replace('</head>',`${mediaCss}${formCss}</head>`);
+  if(!choice) return out;
+  const [file,alt]=choice,src=`${MEDIA}${file}`;
+  if(/class="(?:page-hero-media|school-hero-media)"/i.test(out)) return out.replace(/(<div class="(?:page-hero-media|school-hero-media)"[^>]*>[\s\S]*?<img\b)([^>]*)(>)/i,(m,start,attrs,end)=>`${start}${attrs.replace(/\bsrc="[^"]*"/i,`src="${src}"`).replace(/\balt="[^"]*"/i,`alt="${alt}"`)}${end}`);
+  if(pagePath==='/') return out.replace(/(<img\b[^>]*?alt=")Learners collaborating around a laptop("[^>]*?src=")([^"]+)/i,`$1${alt}$2${src}`);
+  if(pagePath.startsWith('/programmes/')){
+    const figure=`<figure class="apex-context-media"><div><img src="${src}" alt="${alt}" width="1536" height="1024" loading="eager" decoding="async"></div></figure>`;
+    return out.replace(/(<\/section>\s*)(<section class="section">)/i,`$1${figure}$2`);
+  }
+  return out;
+};
+const cleanHtml=(html,pagePath)=>{
+  let out=html.replace(/\b(href|src|action)=(['"])(.*?)\2/gi,(m,a,q,u)=>`${a}=${q}${cleanInternalUrl(u,pagePath)}${q}`);
+  out=out.replace(/<a\b([^>]*?)href="\/privacy-policy"([^>]*)>Privacy<\/a>\s*·\s*<a\b([^>]*?)href="\/terms-and-conditions"([^>]*)>Terms<\/a>/i,'<a$1href="/privacy-policy"$2>Privacy Policy</a> · <a$3href="/terms-and-conditions"$4>Terms &amp; Conditions</a> · <a href="/disclaimer" style="display:inline;margin:0">Disclaimer</a>');
+  out=out.replace(/(<h3 class="footer-heading">Institution<\/h3>[\s\S]*?<a href="\/about">About Apex<\/a>)/i,'$1<a href="/faculty-network">Faculty Network</a>');
+  return applyRouteImage(markCurrentNavigation(out,pagePath),pagePath);
+};
 
 function shell({title,description,label,heading,body}){
 return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0A1B4A"><title>${esc(title)} | Apex Skills Institute</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${SITE}${locationFor(title)}"><link rel="icon" href="/assets/favicon.png"><link rel="stylesheet" href="/assets/styles.css?v=2.13.0"><meta property="og:site_name" content="Apex Skills Institute"><meta property="og:type" content="website"><meta property="og:title" content="${esc(title)} | Apex Skills Institute"><meta property="og:description" content="${esc(description)}"><meta property="og:url" content="${SITE}${locationFor(title)}"><meta property="og:image" content="${SITE}/assets/apex-social-card-v2.jpg"><meta name="twitter:card" content="summary_large_image"></head><body><a class="skip" href="#main">Skip to content</a><header><div class="wrap head"><a class="brand" href="/" aria-label="Apex Skills Institute home"><img src="/assets/apex-logo-light.webp" alt="Apex Skills Institute"></a><nav aria-label="Primary navigation"><a href="/schools">Schools</a><a href="/programmes">Programmes</a><a href="/for-organisations">For Organisations</a><a href="/about">About</a><a href="/contact">Contact</a><a class="nav-cta" href="/contact">Enquire</a></nav><button class="menu" aria-expanded="false" aria-label="Open menu"><span></span><span></span><span></span></button></div></header><main id="main"><section class="page-hero"><div class="wrap"><div class="eyebrow">${esc(label)}</div><h1>${esc(heading)}</h1><p class="lead">Effective 21 August 2026 · Version 1.0</p><div class="status-note"><strong>Draft — Legal Review.</strong> This page is published for institutional transparency and remains subject to review by an appropriate South African legal or privacy professional.</div></div></section><section class="section"><div class="wrap" style="max-width:900px"><div class="legal-copy">${body}</div></div></section></main>${footer()}<script src="/assets/site.js?v=2.13.0"></script></body></html>`}
@@ -84,13 +164,32 @@ const DISCLAIMER=shell({title:'Disclaimer',description:'Important information ab
 });
 const LEGAL={'/terms-and-conditions':TERMS,'/privacy-policy':PRIVACY,'/disclaimer':DISCLAIMER};
 
+const readBody=req=>new Promise((resolve,reject)=>{const chunks=[];let size=0;req.on('data',chunk=>{size+=chunk.length;if(size>100000){reject(new Error('Request too large'));req.destroy();return}chunks.push(chunk)});req.on('end',()=>resolve(Buffer.concat(chunks)));req.on('error',reject)});
+const field=(form,key,max=4000)=>String(form.get(key)||'').trim().slice(0,max);
+async function handleEnquiry(req,res,type){
+  if(req.method!=='POST'){res.statusCode=405;res.setHeader('Allow','POST');return res.end('Method Not Allowed')}
+  const raw=await readBody(req),contentType=req.headers['content-type']||'';let form;
+  if(contentType.includes('application/json'))form=new Map(Object.entries(JSON.parse(raw.toString('utf8')||'{}')));
+  else form=new URLSearchParams(raw.toString('utf8'));
+  if(field(form,'website',200)){res.statusCode=200;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({ok:true}))}
+  const name=field(form,'name',160),email=field(form,'email',254),message=field(form,type==='contact'?'message':'notes',6000);
+  if(name.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||message.length<5){res.statusCode=422;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({message:'Please complete your name, a valid email address and enquiry details.'}))}
+  const reference=`APX-${new Date().toISOString().slice(0,10).replaceAll('-','')}-${crypto.randomUUID().slice(0,8).toUpperCase()}`;
+  const payload={reference,enquiry_type:type,name,email,phone:field(form,'phone',80)||null,organisation:field(form,'organisation',200)||null,interest:field(form,'interest',200)||null,programme:field(form,'programme',240)||null,learner_count:Number(field(form,'learner_count',8))||null,delivery_format:field(form,'format',100)||null,message};
+  const saved=await fetch(`${SUPABASE_URL}/rest/v1/public_enquiries`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(payload)});
+  if(!saved.ok){console.error('Enquiry save failed',saved.status,await saved.text());res.statusCode=503;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({message:'Your enquiry could not be saved right now. Please try again or email chairman@apexskillsinstitute.co.za.'}))}
+  res.statusCode=201;res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');return res.end(JSON.stringify({ok:true,reference}));
+}
+
 module.exports=async function(req,res){
   try{
     const incoming=new URL(req.url||'/',SITE);
     const p=incoming.pathname;
+    if(p==='/api/enquiries')return handleEnquiry(req,res,'contact');
+    if(p==='/api/group-training')return handleEnquiry(req,res,'group_training');
     if(p==='/terms'||p==='/terms.html'){res.statusCode=308;res.setHeader('Location','/terms-and-conditions');return res.end()}
     if(p==='/privacy'||p==='/privacy.html'){res.statusCode=308;res.setHeader('Location','/privacy-policy');return res.end()}
-    if(p==='/index.html'||p.endsWith('.html')){res.statusCode=308;res.setHeader('Location',cleanPath(p)+(incoming.search||''));return res.end()}
+    if(p==='/index'||p==='/index.html'||p.endsWith('.html')){res.statusCode=308;res.setHeader('Location',canonicalRoute(p)+(incoming.search||''));return res.end()}
     if(LEGAL[p]){const b=Buffer.from(LEGAL[p]);res.statusCode=200;res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','public, max-age=0, must-revalidate');res.setHeader('Content-Length',String(b.length));return res.end(b)}
     let originPath=p;
     if(!/\.[a-z0-9]{2,8}$/i.test(p) && p!=='/') originPath=p+'.html';
@@ -102,7 +201,7 @@ module.exports=async function(req,res){
     if(r.status>=300&&r.status<400&&r.headers.get('location')){const l=r.headers.get('location');res.setHeader('Location',l.replace(/\.html(?=$|[?#])/i,''))}
     res.setHeader('X-Apex-Release-Layer','v2.15-phase1');
     let b=Buffer.from(await r.arrayBuffer());
-    if(type.includes('text/html')) b=Buffer.from(cleanHtml(b.toString('utf8')),'utf8');
+    if(type.includes('text/html')) b=Buffer.from(cleanHtml(b.toString('utf8'),p),'utf8');
     res.setHeader('Content-Length',String(b.length));
     res.end(b);
   }catch(e){console.error('Apex release proxy failed',e);res.statusCode=503;res.setHeader('Content-Type','text/plain; charset=utf-8');res.end('Apex Skills Institute is temporarily unavailable. Please try again shortly.')}
