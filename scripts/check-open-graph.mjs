@@ -15,6 +15,10 @@ for (const route of routes) {
     const pattern = new RegExp(`<meta\\b[^>]*property=["']${property.replace(':', '\\:')}["'][^>]*content=["'][^"']+`, 'i');
     if (!pattern.test(html)) throw new Error(`${route}: missing ${property}`);
   }
+  const ogDescription = html.match(/<meta\b[^>]*property=["']og:description["'][^>]*content=["']([^"']*)/i)?.[1];
+  if (!ogDescription || ogDescription.includes('width=device-width') || ogDescription.includes('<')) {
+    throw new Error(`${route}: invalid og:description`);
+  }
   for (const name of ['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image', 'twitter:image:alt']) {
     const pattern = new RegExp(`<meta\\b[^>]*name=["']${name.replace(':', '\\:')}["'][^>]*content=["'][^"']+`, 'i');
     if (!pattern.test(html)) throw new Error(`${route}: missing ${name}`);
