@@ -100,6 +100,7 @@ const applyRouteImage=(html,pagePath)=>{
 };
 const cleanHtml=(html,pagePath)=>{
   let out=html.replace(/\b(href|src|action)=(['"])(.*?)\2/gi,(m,a,q,u)=>`${a}=${q}${cleanInternalUrl(u,pagePath)}${q}`);
+  out=out.replace(/<link\b[^>]*\bhref=(['"])\/assets\/favicon\.png\1[^>]*>/gi,'');
   out=out.replace(/info@apexskills\.ac\.za/gi,'info@apexskillsinstitute.co.za');
   out=out.replace(/\/assets\/apex-logo-light\.webp/g,'/assets/brand/apex-logo-light-hd.webp');
   out=out.replace(/\/assets\/apex-logo-dark\.webp/g,'/assets/brand/apex-logo-dark-hd.webp');
